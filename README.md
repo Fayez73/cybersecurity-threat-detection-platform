@@ -1,12 +1,7 @@
-# 
-
 # 🚀 cybersecurity-threat-detection-platform (Lambda + SageMaker + XGBoost)
 
 ## 🔹 Project Overview
-This project builds a comprehensive **production-ready Cybersecurity threat detection stack** on AWS with Lambda and SageMaker.  
-It uses **XGboost** to train and test the model
-
-This stack is deployed using Codebuild/CodePipeline via terraform
+This project builds a comprehensive A machine learning-based cybersecurity threat detection system that uses Amazon SageMaker, XGBoost, and deployed using Terraform and AWS CodePipeline.
 
 ---
 
@@ -26,6 +21,29 @@ This stack is deployed using Codebuild/CodePipeline via terraform
 - **Infrastructure**: Terraform for AWS resource provisioning
 - **CI/CD**: CodeBuild and CodePipeline for automated deployment
 - **Model Deployment**: SageMaker endpoint for real-time threat detection-
+
+---
+
+## Quick Start
+1. Clone the repository
+2. Configure AWS credentials
+3. Run `./scripts/setup_environment.sh`
+4. Deploy infrastructure: `./scripts/deploy_infrastructure.sh`
+5. Trigger the ML pipeline through CodePipeline
+
+---
+
+## Architecture
+The system consists of:
+- Data processing pipeline for cybersecurity logs
+- XGBoost model training and evaluation
+- Real-time inference endpoint
+- Automated model retraining and deployment
+
+---
+
+## Documentation
+See `/docs` directory for detailed documentation.
 
 ---
 
@@ -108,7 +126,6 @@ cyber-threat-detection/
     ├── architecture.md
     ├── deployment_guide.md
     └── api_reference.md
-
 
 ```
 ---
