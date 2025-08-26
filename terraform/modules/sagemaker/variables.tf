@@ -1,61 +1,137 @@
+# SageMaker Module Variables
+
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "cybersecurity-threat-detection"
 }
 
 variable "environment" {
   description = "Environment name (dev, staging, prod)"
   type        = string
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Environment must be dev, staging, or prod."
-  }
 }
 
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
 }
 
-variable "common_tags" {
-  description = "Common tags to be applied to all resources"
+variable "tags" {
+  description = "Tags to be applied to all resources"
   type        = map(string)
   default     = {}
 }
 
-# S3 Configuration
-
-# SageMaker Configuration
-variable "sagemaker_instance_type" {
-  description = "SageMaker instance type for training"
+# IAM Configuration
+variable "sagemaker_execution_role_arn" {
+  description = "ARN of the SageMaker execution role"
   type        = string
-  default     = "ml.m5.xlarge"
 }
 
+# Model Configuration
+variable "training_image_uri" {
+  description = "URI of the training image"
+  type        = string
+  default     = "246618743249.dkr.ecr.us-east-1.amazonaws.com/sagemaker-xgboost:1.5-1"
+}
+
+variable "model_data_url" {
+  description = "S3 URL of the model artifacts"
+  type        = string
+}
+
+variable "inference_script_name" {
+  description = "Name of the inference script"
+  type        = string
+  default     = "inference.py"
+}
+
+variable "model_environment_variables" {
+  description = "Environment variables for the model container"
+  type        = map(string)
+  default     = {}
+}
+
+variable "log_level" {
+  description = "Log level for SageMaker container"
+  type        = string
+  default     = "20"
+}
+
+# Endpoint Configuration
 variable "endpoint_instance_type" {
-  description = "SageMaker instance type for endpoint"
+  description = "Instance type for the SageMaker endpoint"
   type        = string
   default     = "ml.t2.medium"
 }
 
 variable "endpoint_instance_count" {
-  description = "Number of instances for SageMaker endpoint"
+  description = "Number of instances for the SageMaker endpoint"
   type        = number
   default     = 1
 }
 
-variable "auto_scaling_enabled" {
-  description = "Enable auto scaling for SageMaker endpoint"
-  type        = bool
-  default     = false
+# VPC Configuration
+variable "vpc_config" {
+  description = "VPC configuration for SageMaker"
+  type = object({
+    subnets            = list(string)
+    security_group_ids = list(string)
+  })
+  default = null
 }
 
-variable "auto_scaling_max_capacity" {
-  description = "Maximum capacity for auto scaling"
-  type        = number
-  default     = 3
+# Data Capture Configuration
+variable "data_capture_config" {
+  description = "Data capture configuration for model monitoring"
+  type = object({
+    enable_capture              = bool
+    initial_sampling_percentage = number
+    destination_s3_uri         = string
+    capture_options            = list(string)
+    capture_content_type_header = optional(object({
+      csv_content_types  = list(string)
+      json_content_types = list(string)
+    }))
+  })
+  default = null
+}
+
+# Encryption
+variable "kms_key_id" {
+  description = "KMS key ID for encryption"
+  type        = string
+  default     = null
+}
+
+# Blue/Green Deployment
+variable "blue_green_update_policy" {
+  description = "Blue/green update policy configuration"
+  type = object({
+    traffic_routing_configuration = object({
+      type                     = string
+      wait_interval_in_seconds = number
+      canary_size = optional(object({
+        type  = string
+        value = number
+      }))
+    })
+    termination_wait_in_seconds          = number
+    maximum_execution_timeout_in_seconds = number
+  })
+  default = null
+}
+
+variable "auto_rollback_alarms" {
+  description = "List of CloudWatch alarm names for auto rollback"
+  type        = list(string)
+  default     = []
+}
+
+# Auto Scaling Configuration
+variable "enable_auto_scaling" {
+  description = "Enable auto scaling for the SageMaker endpoint"
+  type        = bool
+  default     = false
 }
 
 variable "auto_scaling_min_capacity" {
@@ -64,103 +140,75 @@ variable "auto_scaling_min_capacity" {
   default     = 1
 }
 
-# CI/CD Configuration
-variable "enable_cicd" {
-  description = "Enable CI/CD pipeline"
+variable "auto_scaling_max_capacity" {
+  description = "Maximum capacity for auto scaling"
+  type        = number
+  default     = 10
+}
+
+variable "auto_scaling_metric_type" {
+  description = "Metric type for auto scaling"
+  type        = string
+  default     = "SageMakerVariantInvocationsPerInstance"
+}
+
+variable "auto_scaling_target_value" {
+  description = "Target value for auto scaling metric"
+  type        = number
+  default     = 1000.0
+}
+
+variable "auto_scaling_scale_in_cooldown" {
+  description = "Scale in cooldown period in seconds"
+  type        = number
+  default     = 300
+}
+
+variable "auto_scaling_scale_out_cooldown" {
+  description = "Scale out cooldown period in seconds"
+  type        = number
+  default     = 60
+}
+
+# CloudWatch Alarms
+variable "create_cloudwatch_alarms" {
+  description = "Create CloudWatch alarms for monitoring"
   type        = bool
   default     = true
 }
 
-variable "github_repo" {
-  description = "GitHub repository (owner/repo)"
-  type        = string
-  default     = ""
-}
-
-variable "github_branch" {
-  description = "GitHub branch"
-  type        = string
-  default     = "main"
-}
-
-variable "github_token" {
-  description = "GitHub personal access token"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "codebuild_image" {
-  description = "CodeBuild image"
-  type        = string
-  default     = "aws/codebuild/amazonlinux2-x86_64-standard:3.0"
-}
-
-variable "codebuild_compute_type" {
-  description = "CodeBuild compute type"
-  type        = string
-  default     = "BUILD_GENERAL1_MEDIUM"
-}
-
-# Security Configuration
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for S3 and SageMaker"
-  type        = bool
-  default     = false
-}
-
-variable "vpc_id" {
-  description = "VPC ID for VPC endpoints"
-  type        = string
-  default     = ""
-}
-
-variable "subnet_ids" {
-  description = "Subnet IDs for VPC endpoints"
+variable "alarm_actions" {
+  description = "List of alarm action ARNs"
   type        = list(string)
   default     = []
 }
 
-variable "enable_encryption" {
-  description = "Enable encryption for S3 buckets"
-  type        = bool
-  default     = true
-}
-
-variable "kms_key_id" {
-  description = "KMS key ID for encryption"
-  type        = string
-  default     = ""
-}
-
-# Monitoring Configuration
-variable "enable_cloudwatch_alarms" {
-  description = "Enable CloudWatch alarms"
-  type        = bool
-  default     = true
-}
-
-variable "sns_topic_arn" {
-  description = "SNS topic ARN for notifications"
-  type        = string
-  default     = ""
-}
-
-# Data Configuration
-variable "training_data_prefix" {
-  description = "S3 prefix for training data"
-  type        = string
-  default     = "data/training"
-}
-
-variable "model_artifacts_prefix" {
-  description = "S3 prefix for model artifacts"
-  type        = string
-  default     = "models"
-}
-
-variable "data_retention_days" {
-  description = "Data retention period in days"
+variable "alarm_period" {
+  description = "Period for CloudWatch alarms in seconds"
   type        = number
-  default     = 90
+  default     = 300
+}
+
+variable "alarm_evaluation_periods" {
+  description = "Number of evaluation periods for alarms"
+  type        = number
+  default     = 2
+}
+
+variable "invocation_error_threshold" {
+  description = "Threshold for invocation errors alarm"
+  type        = number
+  default     = 10
+}
+
+variable "model_latency_threshold" {
+  description = "Threshold for model latency alarm in milliseconds"
+  type        = number
+  default     = 2000
+}
+
+variable "low_invocations_threshold" {
+  description = "Threshold for low invocations alarm"
+  type        = number
+  default     = 1
 }
