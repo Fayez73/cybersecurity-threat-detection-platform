@@ -1,0 +1,69 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - echo "Installing dependencies"
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+      - echo "Checking AWS configuration"
+      - aws sts get-caller-identity
+
+  pre_build:
+    commands:
+      - echo "Pre-build phase started on `date`"
+      - echo "Creating sample data if not exists"
+      - python -c "
+        import boto3
+        from src.data_processing.data_loader import DataLoader
+        from src.utils.config import Config
+        
+        config = Config()
+        s3_client = boto3.client('s3')
+        
+        # Check if sample data exists in S3, create if not
+        try:
+            s3_client.head_object(Bucket=config.data_bucket, Key='sample/kdd_cup_sample.csv')
+            print('Sample data already exists in S3')
+        except:
+            print('Creating and uploading sample data')
+            loader = DataLoader(config)
+            sample_data = loader.load_kdd_cup_data()
+            sample_data.to_csv('/tmp/kdd_cup_sample.csv', index=False)
+            s3_client.upload_file('/tmp/kdd_cup_sample.csv', config.data_bucket, 'sample/kdd_cup_sample.csv')
+            print('Sample data uploaded to S3')
+        "
+      - echo "Running tests"
+      - python -m pytest tests/ -v
+      - echo "Validating data"
+      - python src/data_processing/data_validation.py
+
+  build:
+    commands:
+      - echo "Build phase started on `date`"
+      - echo "Processing data"
+      - python src/data_processing/data_loader.py
+      - python src/data_processing/feature_engineering.py
+      - echo "Starting model training with hyperparameter tuning"
+      - python src/training/train.py --use-sagemaker
+      - echo "Evaluating model"
+      - python src/training/evaluate.py
+
+  post_build:
+    commands:
+      - echo "Post-build phase completed on `date`"
+      - echo "Deploying model to SageMaker endpoint"
+      - python src/inference/predictor.py --deploy
+      - echo "Running integration tests on deployed endpoint"
+      - python tests/test_integration.py
+
+artifacts:
+  files:
+    - '**/*'
+  name: threat-detection-artifacts-$(date +%Y-%m-%d)
+
+cache:
+  paths:
+    - '/root/.cache/pip/**/*'
