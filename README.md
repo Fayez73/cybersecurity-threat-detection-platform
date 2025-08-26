@@ -76,6 +76,10 @@ cyber-threat-detection/
 │   │       ├── main.tf
 │   │       ├── variables.tf
 │   │       └── outputs.tf
+│   │   └── codebuild/
+│   │       ├── main.tf
+│   │       ├── variables.tf
+│   │       └── outputs.tf
 │   └── environments/
 │       ├── dev/
 │       │   ├── main.tf
