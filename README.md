@@ -72,6 +72,7 @@ cyber-threat-detection/
 │       ├── iam
 │       ├── s3
 │       └── sagemaker
+|── scripts
 └── tests
 
 ```
