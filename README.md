@@ -1,4 +1,4 @@
-# 🚀 cybersecurity-threat-detection-platform (Lambda + SageMaker + XGBoost)
+# 🚀 Cybersecurity-Threat-Detection-platform (Lambda + SageMaker + XGBoost)
 
 ## 🔹 Project Overview
 This project builds a comprehensive A machine learning-based cybersecurity threat detection system that uses Amazon SageMaker, XGBoost, and deployed using Terraform and AWS CodePipeline.
