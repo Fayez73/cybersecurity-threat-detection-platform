@@ -28,7 +28,7 @@ This project builds a comprehensive A machine learning-based cybersecurity threa
 1. Clone the repository
 2. Configure AWS credentials
 3. Run `./scripts/setup_environment.sh`
-4. Deploy infrastructure: `./scripts/deploy_infrastructure.sh`
+4. ML Pipeline execution: `./scripts/run_pipeline.sh`
 5. Trigger the ML pipeline through CodePipeline
 
 ---
